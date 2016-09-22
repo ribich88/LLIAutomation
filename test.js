@@ -1,26 +1,34 @@
-var webdriver = require('selenium-webdriver');
+var assert = require('assert'),
+  fs = require('fs');
 
-// Input capabilities
-var capabilities = {
-  'browserstack.local' : 'true'
-}
+var webdriver = require('selenium-webdriver')
+  test = require('selenium-webdriver/testing');
 
-// var driver = new webdriver.Builder().
-//   usingServer('http://hub-cloud.browserstack.com/wd/hub').
-//   withCapabilities(capabilities).
-//   build();
+test.describe('Google Search', function() {
+  var driver, server;
 
-// Running selenium-server.jar at port 4444
-var driver = new webdriver.Builder().usingServer('http://localhost:4444/wd/hub').withCapabilities({
-  'browserName' : 'firefox'
-}).build()
+  test.before(function() {
+  var capabilities = {
+    'browserName' : 'firefox', 
+    'browserstack.user' : 'USERNAME',
+    'browserstack.key' : 'ACCESS_KEY'
+   }
+  driver = new webdriver.Builder().
+    usingServer('http://hub-cloud.browserstack.com/wd/hub').
+    withCapabilities(capabilities).
+    build();
+  });
+  
+  test.it('should append query to title', function() {
+    driver.get('http://www.google.com');
+    driver.findElement(webdriver.By.name('q')).sendKeys('BrowserStack');
+    driver.findElement(webdriver.By.name('btnG')).click();
+    driver.wait(function() {
+      return driver.getTitle().then(function(title) {
+        return 'BrowserStack - Google Search' === title;
+      });
+    }, 1000);
+  });
 
-driver.get('http://www.google.com');
-driver.findElement(webdriver.By.name('q')).sendKeys('BrowserStack');
-driver.findElement(webdriver.By.name('btnG')).click();
-
-driver.getTitle().then(function(title) {
-  console.log(title);
+  test.after(function() { driver.quit(); });
 });
-
-driver.quit();
